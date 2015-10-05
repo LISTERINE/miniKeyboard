@@ -24,14 +24,28 @@ Bounce button9 = Bounce(9, 10);
 
 int modKey = -1; // Which button is the current modifier
 
-void winR() {
+void winR(int sleep) {
   Keyboard.set_modifier(MODIFIERKEY_GUI); // Press and hold win/clover key
   Keyboard.set_key1(KEY_R);
   Keyboard.send_now();
   Keyboard.set_key1(0);
   Keyboard.set_modifier(0); // Clear modifiers
   Keyboard.send_now();
+  delay(sleep);
+}
+
+void winMaximize(boolean withTmux) {
+  Keyboard.set_modifier(MODIFIERKEY_GUI); // Press and hold win/clover key
+  Keyboard.set_key1(KEY_UP);
+  Keyboard.send_now();
+  Keyboard.set_key1(0);
+  Keyboard.set_modifier(0); // Clear modifiers
+  Keyboard.send_now();
   delay(300);
+  if (withTmux) {
+    Keyboard.println("tmux");
+    Keyboard.send_now();
+  }
 }
 
 void setup() {
@@ -89,10 +103,11 @@ void loop() {
         break;
       case 2:
         // Corp special
-        winR();
-        Keyboard.println("putty.exe -load \"DevEnv\"");
+        winR(1000);
+        Keyboard.println("\"C:\\Program Files (x86)\\PuTTY\\putty.exe\" -load \"DevEnv\"");
         Keyboard.send_now();
         delay(1500);
+        winMaximize(true);
         Keyboard.println("vulndb");
         Keyboard.send_now();
         break;
@@ -114,9 +129,11 @@ void loop() {
     switch (modKey) {
       case 0:
         // ssh/putty
-        winR();
-        Keyboard.println("putty.exe -load \"DevEnv\"");
+        winR(1000);
+        Keyboard.println("\"C:\\Program Files (x86)\\PuTTY\\putty.exe\" -load \"DevEnv\"");
         Keyboard.send_now();
+        delay(1500);
+        winMaximize(true);
         break;
       case 2:
         break;
@@ -199,9 +216,11 @@ void loop() {
     switch (modKey) {
       case 0:
         // ssh/putty
-        winR();
-        Keyboard.println("putty.exe -load \"vultr_biggest\"");
+        winR(300);
+        Keyboard.println("\"C:\\Program Files (x86)\\PuTTY\\putty.exe\" -load \"vultr_biggest\"");
         Keyboard.send_now();
+        delay(1500);
+        winMaximize(false);
         break;
       case 1:
         // Docker

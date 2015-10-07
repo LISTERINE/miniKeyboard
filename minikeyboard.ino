@@ -1,29 +1,79 @@
-/* Buttons to USB Keyboard Example
-
-   You must select Keyboard from the "Tools > USB Type" menu
-
-   This example code is in the public domain.
+/* 
+ Turn mechanical key tester into a macro mini keyboard
 */
 
 #include <Bounce.h>
 
-// Create Bounce objects for each button.  The Bounce object
+#define KEYCOUNT 6 // Number of keys we have 
+
+/********************************************
+ * Set up enums
+ */
+ 
+// OS enumeration
+enum OSType {
+  WINDOWS,
+  UBUNTU,
+  CENTOS
+};
+
+// Make a corresponding enum that creates a directive for each key
+// enum index are respective of keys[] index
+enum directive {
+  REMOTE, // ssh and stuff
+  DOCKER, // docker things
+  WORK_TOOLS, // work specific macros
+  RESERVED_A, // reserved for later
+  RESERVED_B, // reserved for later
+  OS_SWITCH // change which OS we're on
+};
+
+/*
+ * End enum setup section
+ *******************************************/
+
+/********************************************
+ * Array of keys setup here
+ */
+ 
+// Create Bounce objects for each key.  The Bounce object
 // automatically deals with contact chatter or "bounce", and
 // it makes detecting changes very simple.
-Bounce button0 = Bounce(22, 10);
-Bounce button1 = Bounce(21, 10);  // 10 = 10 ms debounce time
-Bounce button2 = Bounce(20, 10);  // which is appropriate for
-Bounce button3 = Bounce(3, 10);  // most mechanical pushbuttons
-Bounce button4 = Bounce(4, 10);
-Bounce button5 = Bounce(5, 10);  // if a button is too "sensitive"
-Bounce button6 = Bounce(6, 10);  // to rapid touch, you can
-Bounce button7 = Bounce(7, 10);  // increase this time.
-Bounce button8 = Bounce(8, 10);
-Bounce button9 = Bounce(9, 10);
+// 10 = 10 ms debounce time
+// which is appropriate for most mechanical pushbuttons
+// if a key is too "sensitive" to rapid touch, you canincrease this time.
+Bounce keys[KEYCOUNT] = {
+  Bounce(22, 10),
+  Bounce(21, 10),
+  Bounce(20, 10),
+  Bounce(3, 10),
+  Bounce(4, 10),
+  Bounce(5, 10)
+};
 
+/*
+ * End key setup section
+ *******************************************/
+ 
+/********************************************
+ * State vars setup globally here
+ */
+ 
+// Which key is the current modifier
+int modKey = -1;
 
-int modKey = -1; // Which button is the current modifier
+// The current OS profile
+OSType currentOS = WINDOWS;
 
+/*
+ * State vars end
+ *******************************************/
+
+/************************************
+ * Handy shortcuts get setup here, not for actual full macros
+ */
+
+// Shortcut for hitting win+r
 void winR(int sleep) {
   Keyboard.set_modifier(MODIFIERKEY_GUI); // Press and hold win/clover key
   Keyboard.set_key1(KEY_R);
@@ -34,6 +84,7 @@ void winR(int sleep) {
   delay(sleep);
 }
 
+// Shortcut for maximizing windows in windows
 void winMaximize(boolean withTmux) {
   Keyboard.set_modifier(MODIFIERKEY_GUI); // Press and hold win/clover key
   Keyboard.set_key1(KEY_UP);
@@ -48,10 +99,98 @@ void winMaximize(boolean withTmux) {
   }
 }
 
+/*
+ * Shortcut section end
+ *******************************************/
+
+/*******************************************
+ * Macro functions
+ * These are the functions that will actually be triggered by our key presses
+ * We will use them in our function array
+ */
+// Remote stuff
+void sshWorkEnv() {
+  winR(1000);
+  Keyboard.println("\"C:\\Program Files (x86)\\PuTTY\\putty.exe\" -load \"DevEnv\"");
+  Keyboard.send_now();
+  delay(1500);
+  winMaximize(true);
+}
+
+// Docker section
+void dockerUbuntu() {
+  Keyboard.println("docker run --rm -it ubuntu:latest /bin/bash");
+  Keyboard.send_now();
+}
+
+void dockerCentos() {
+  Keyboard.println("docker run --rm -it centos:latest /bin/bash");
+  Keyboard.send_now();
+}
+
+// Corp macros
+void sshVDB() {
+  sshWorkEnv();
+  delay(700);
+  Keyboard.println("vulndb");
+  Keyboard.send_now();
+}
+
+// OS profile modifiers
+void setOSWindows() {
+  currentOS = WINDOWS;
+}
+
+void setOSUBUNTU() {
+  currentOS = UBUNTU;
+}
+
+void setOSCENTOS() {
+  currentOS = CENTOS;
+}
+
+// This function is a place holder for keys that have no function yet
+void notImplemented() {}
+
+// This function is used as a place holder for a mod key in it's own row. 
+// If you're pressing key 0 to mod, you can't also press it for a function, because you can't press a key that's aleady pressed.
+void self() {}
+
+/*
+ * Macro section end
+ *******************************************/
+
+/*******************************************
+ * Here we fill up our array of functions
+ * index [0][1] means key 0 is the modkey and then they hit key 1
+ *  function key ----------->
+ *  modifier key {{ self, f01,  f02 },
+ *             |  { f10,  self, f12 },
+ *             |  { f20,  f21,  self}}
+ *             V     
+ */
+
+void (*macros[KEYCOUNT][KEYCOUNT])() = {
+  {self,           sshWorkEnv,     notImplemented, notImplemented, notImplemented, notImplemented}, // Remote
+  {dockerUbuntu,   self,           dockerCentos,   notImplemented, notImplemented, notImplemented}, // Docker
+  {sshVDB,         notImplemented, self,           notImplemented, notImplemented, notImplemented}, // Corp macros
+  {notImplemented, notImplemented, notImplemented, self,           notImplemented, notImplemented}, // Reserved
+  {notImplemented, notImplemented, notImplemented, notImplemented, self,           notImplemented}, // Reserved
+  {setOSWindows,   setOSUBUNTU,    setOSCENTOS,    notImplemented, notImplemented, self          }, // OS Switch
+};
+
+/*
+ * Array of functions section end
+ *******************************************/
+
+/*******************************************
+ * Standard arduino setup and loop functions
+ */
+ 
 void setup() {
   // Configure the pins for input mode with pullup resistors.
   // The pushbuttons connect from each pin to ground.  When
-  // the button is pressed, the pin reads LOW because the button
+  // the key is pressed, the pin reads LOW because the key
   // shorts it to ground.  When released, the pin reads HIGH
   // because the pullup resistor connects to +5 volts inside
   // the chip.  LOW for "on", and HIGH for "off" may seem
@@ -65,203 +204,45 @@ void setup() {
   pinMode(3, INPUT_PULLUP);
   pinMode(4, INPUT_PULLUP);
   pinMode(5, INPUT_PULLUP);
-  pinMode(6, INPUT_PULLUP);  // Teensy++ LED, may need 1k resistor pullup
-  pinMode(7, INPUT_PULLUP);
-  pinMode(8, INPUT_PULLUP);
-  pinMode(9, INPUT_PULLUP);
+  
 }
 
 void loop() {
-  // Update all the buttons.  There should not be any long
-  // delays in loop(), so this runs repetitively at a rate
-  // faster than the buttons could be pressed and released.
-  button0.update();
-  button1.update();
-  button2.update();
-  button3.update();
-  button4.update();
-  button5.update();
-  button6.update();
-  button7.update();
-  button8.update();
-  button9.update();
-
-  // Check each button for "falling" edge.
-  // Type a message on the Keyboard when each button presses
+  // Update the status for each key
+  for (int i = 0; i < KEYCOUNT; i = i + 1) {
+    keys[i].update();
+  }
+  
+  // Check each key for "falling" edge.
+  // Type a message on the Keyboard when each key presses
   // Update the Joystick buttons only upon changes.
   // falling = high (not pressed - voltage from pullup resistor)
-  //           to low (pressed - button connects pin to ground)
-  if (button0.fallingEdge()) {
-    //
-    // Modifier goal: remote (putty, ssh, RD, etc...)
-    //
-    switch (modKey) {
-      case 1:
-        // Docker
-        Keyboard.println("docker run --rm -it ubuntu:latest /bin/bash");
-        Keyboard.send_now();
-        break;
-      case 2:
-        // Corp special
-        winR(1000);
-        Keyboard.println("\"C:\\Program Files (x86)\\PuTTY\\putty.exe\" -load \"DevEnv\"");
-        Keyboard.send_now();
-        delay(1500);
-        winMaximize(true);
-        Keyboard.println("vulndb");
-        Keyboard.send_now();
-        break;
-      case 3:
-        break;
-      case 4:
-        break;
-      case 5:
-        break;
-      default:
-        modKey = 0;
-        break;
-    }
-  }
-  if (button1.fallingEdge()) {
-    //
-    // Modifier goal: docker
-    //
-    switch (modKey) {
-      case 0:
-        // ssh/putty
-        winR(1000);
-        Keyboard.println("\"C:\\Program Files (x86)\\PuTTY\\putty.exe\" -load \"DevEnv\"");
-        Keyboard.send_now();
-        delay(1500);
-        winMaximize(true);
-        break;
-      case 2:
-        break;
-      case 3:
-        break;
-      case 4:
-        break;
-      case 5:
-        break;
-      default:
-        modKey = 1;
-        break;
-    }
-  }
-  if (button2.fallingEdge()) {
-    //
-    // Corp special shortcuts for work
-    //
-    switch (modKey) {
-      case 0:
-        // ssh/putty
-        break;
-      case 1:
-        // Docker
-        Keyboard.println("docker run --rm -it centos:latest /bin/bash");
-        Keyboard.send_now();
-        break;
-      case 3:
-        break;
-      case 4:
-        break;
-      case 5:
-        break;
-      default:
-        modKey = 2;
-        break;
-    }
-  }
-  if (button3.fallingEdge()) {
-    switch (modKey) {
-      case 0:
-        // ssh/putty
-        break;
-      case 1:
-        // Docker
-        break;
-      case 2:
-        // Corp special
-        break;
-      case 4:
-        break;
-      case 5:
-        break;
-      default:
-        modKey = 3;
-        break;
-    }
-  }
-  if (button4.fallingEdge()) {
-    switch (modKey) {
-      case 0:
-        // ssh/putty
-        break;
-      case 1:
-        // Docker
-        break;
-      case 2:
-        // Corp special
-        break;
-      case 3:
-        break;
-      case 5:
-        break;
-      default:
-        modKey = 4;
-        break;
-    }
-  }
-  if (button5.fallingEdge()) {
-    switch (modKey) {
-      case 0:
-        // ssh/putty
-        winR(300);
-        Keyboard.println("\"C:\\Program Files (x86)\\PuTTY\\putty.exe\" -load \"vultr_biggest\"");
-        Keyboard.send_now();
-        delay(1500);
-        winMaximize(false);
-        break;
-      case 1:
-        // Docker
-        break;
-      case 2:
-        // Corp special
-        break;
-      case 3:
-        break;
-      case 4:
-        break;
-      default:
-        modKey = 5;
-        break;
+  //           to low (pressed - key connects pin to ground)
+  for (int key = 0; key < KEYCOUNT; key++) {
+    if (keys[key].fallingEdge()) {
+      if ((modKey >= 0) && (modKey < KEYCOUNT)) { // If the modKey is valid, run a function.
+        macros[modKey][key]();
+      }
+      else { //If modKey is not valid, set it.
+        modKey = key;
+      }
     }
   }
   
-
-  // Check each button for "rising" edge
-  // Type a message on the Keyboard when each button releases.
-  // For many types of projects, you only care when the button
+  // Check each key for "rising" edge
+  // Type a message on the Keyboard when each key releases.
+  // For many types of projects, you only care when the key
   // is pressed and the release isn't needed.
-  // rising = low (pressed - button connects pin to ground)
+  // rising = low (pressed - key connects pin to ground)
   //          to high (not pressed - voltage from pullup resistor)
-  if (button0.risingEdge()) {
-    modKey = -1;
-  }
-  if (button1.risingEdge()) {
-    modKey = -1;
-  }
-  if (button2.risingEdge()) {
-    modKey = -1;
-  }
-  if (button3.risingEdge()) {
-    modKey = -1;
-  }
-  if (button4.risingEdge()) {
-    modKey = -1;
-  }
-  if (button5.risingEdge()) {
-    modKey = -1;
+  for (int key = 0; key < KEYCOUNT; key++) {
+    if (keys[key].risingEdge()) { // If a key comes up, put modKey into an invalid state so it will need to be made valid again before a function can be run.
+      modKey = -1;
+    }
   }
 }
+
+/*
+ * Setup and loop section end
+ *******************************************/
 

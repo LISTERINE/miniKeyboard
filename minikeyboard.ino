@@ -5,16 +5,20 @@
 #include <Bounce.h>
 
 #define KEYCOUNT 6 // Number of keys we have 
+#define PROFILECOUNT 6 // Number of operating systems we can choose from
 
 /********************************************
  * Set up enums
  */
  
-// OS enumeration
-enum OSType {
-  WINDOWS,
-  UBUNTU,
-  CENTOS
+// Profile enumeration
+enum ProfileType {
+  WINDOWS_0,
+  UBUNTU_0,
+  CENTOS_0,
+  OSX_0,
+  RESERVED_0,
+  WINDOWS_1
 };
 
 // Make a corresponding enum that creates a directive for each key
@@ -62,8 +66,11 @@ Bounce keys[KEYCOUNT] = {
 // Which key is the current modifier
 int modKey = -1;
 
-// The current OS profile
-OSType currentOS = WINDOWS;
+// Which was the pressed after the modifier, if any
+int secondaryKey = -1;
+
+// The initial profile
+ProfileType currentProfile = WINDOWS_0;
 
 /*
  * State vars end
@@ -136,19 +143,46 @@ void sshVDB() {
   Keyboard.send_now();
 }
 
-// OS profile modifiers
-void setOSWindows() {
-  currentOS = WINDOWS;
+/*
+ * Macro section end
+ *******************************************/
+
+/*******************************************
+ * OS/profile modifier functions
+ */
+ 
+void setProfile_0() {
+  currentProfile = WINDOWS_0;
 }
 
-void setOSUBUNTU() {
-  currentOS = UBUNTU;
+void setProfile_1() {
+  currentProfile = UBUNTU_0;
 }
 
-void setOSCENTOS() {
-  currentOS = CENTOS;
+void setProfile_2() {
+  currentProfile = CENTOS_0;
 }
 
+void setProfile_3() {
+  currentProfile = OSX_0;
+}
+
+void setProfile_4() {
+  currentProfile = RESERVED_0;
+}
+
+void setProfile_5() {
+  currentProfile = WINDOWS_1;
+}
+
+/*
+ * Profile switch functions section end
+ *******************************************/
+
+/*******************************************
+ * Filler functions
+ */
+ 
 // This function is a place holder for keys that have no function yet
 void notImplemented() {}
 
@@ -157,26 +191,78 @@ void notImplemented() {}
 void self() {}
 
 /*
- * Macro section end
+ * Filler function section end
  *******************************************/
 
 /*******************************************
  * Here we fill up our array of functions
  * index [0][1] means key 0 is the modkey and then they hit key 1
- *  function key ----------->
- *  modifier key {{ self, f01,  f02 },
- *             |  { f10,  self, f12 },
- *             |  { f20,  f21,  self}}
- *             V     
+ * function key ----------->
+ * modifier key {{ self, f01,  f02 },
+ *            |  { f10,  self, f12 },
+ *            |  { f20,  f21,  self}}
+ *            V
+ *  The array is grouped into sections, based on the currently selected OS/profile
+ *  
+ *  functions at n,n (example [0][0]) require only one key press and take no modifier other than the current profile
+ *  
  */
 
-void (*macros[KEYCOUNT][KEYCOUNT])() = {
-  {self,           sshWorkEnv,     notImplemented, notImplemented, notImplemented, notImplemented}, // Remote
-  {dockerUbuntu,   self,           dockerCentos,   notImplemented, notImplemented, notImplemented}, // Docker
-  {sshVDB,         notImplemented, self,           notImplemented, notImplemented, notImplemented}, // Corp macros
-  {notImplemented, notImplemented, notImplemented, self,           notImplemented, notImplemented}, // Reserved
-  {notImplemented, notImplemented, notImplemented, notImplemented, self,           notImplemented}, // Reserved
-  {setOSWindows,   setOSUBUNTU,    setOSCENTOS,    notImplemented, notImplemented, self          }, // OS Switch
+void (*macros[PROFILECOUNT][KEYCOUNT][KEYCOUNT])() = {
+  // Windows functions
+  {
+    {sshWorkEnv,     notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Remote
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Docker
+    {sshVDB,         notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Corp macros
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
+    {setProfile_0,   setProfile_1,    setProfile_2,    setProfile_3, setProfile_4,   setProfile_5  }  // Profile Switch
+  },
+  // Ubuntu functions
+  {
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Remote
+    {dockerUbuntu,   notImplemented, dockerCentos,   notImplemented, notImplemented, notImplemented}, // Docker
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
+    {setProfile_0,   setProfile_1,    setProfile_2,    setProfile_3, setProfile_4,   setProfile_5  }  // Profile Switch
+  },
+  // Centos functions
+  {
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Remote
+    {dockerUbuntu,   notImplemented, dockerCentos,   notImplemented, notImplemented, notImplemented}, // Docker
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
+    {setProfile_0,   setProfile_1,    setProfile_2,    setProfile_3, setProfile_4,   setProfile_5  }  // Profile Switch
+  },
+  // OSX functions
+  {
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Remote
+    {dockerUbuntu,   notImplemented, dockerCentos,   notImplemented, notImplemented, notImplemented}, // Docker
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
+    {setProfile_0,   setProfile_1,    setProfile_2,    setProfile_3, setProfile_4,   setProfile_5  }  // Profile Switch
+  },
+  // RESERVED_0 functions
+  {
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Remote
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Docker
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
+    {setProfile_0,   setProfile_1,    setProfile_2,    setProfile_3, setProfile_4,   setProfile_5  }  // Profile Switch
+  },
+  // WINDOWS_2 functions
+  {
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Remote
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Docker
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
+    {setProfile_0,   setProfile_1,    setProfile_2,    setProfile_3, setProfile_4,   setProfile_5  }  // Profile Switch
+  }
 };
 
 /*
@@ -218,13 +304,22 @@ void loop() {
   // Update the Joystick buttons only upon changes.
   // falling = high (not pressed - voltage from pullup resistor)
   //           to low (pressed - key connects pin to ground)
+  //
   for (int key = 0; key < KEYCOUNT; key++) {
+    // Loop over all our buttons to check their status
     if (keys[key].fallingEdge()) {
-      if ((modKey >= 0) && (modKey < KEYCOUNT)) { // If the modKey is valid, run a function.
-        macros[modKey][key]();
+      // If we find a key that has been pressed...
+      if ((modKey >= 0) && (modKey < KEYCOUNT)) {
+        // Check if the modKey is already set to a valid option, if it is that means that
+        // this is a secondary key press so record as secondary and execute the associated function.
+        secondaryKey = key;
+        macros[currentProfile][modKey][key]();
       }
-      else { //If modKey is not valid, set it.
+      else { 
+        // If modKey is not valid, set it, and clear any existing secondary key.
+        // We clear the secondary key here to avoid complications if you are only hitting a single key (using no modifier)
         modKey = key;
+        secondaryKey = -1;
       }
     }
   }
@@ -236,8 +331,17 @@ void loop() {
   // rising = low (pressed - key connects pin to ground)
   //          to high (not pressed - voltage from pullup resistor)
   for (int key = 0; key < KEYCOUNT; key++) {
-    if (keys[key].risingEdge()) { // If a key comes up, put modKey into an invalid state so it will need to be made valid again before a function can be run.
-      modKey = -1;
+    // Loop over all our buttons to check their status
+    if (keys[key].risingEdge()) { 
+      // If a key comes up, that means that the modKey was either not used to modify or it already did it's job; put modKey into an invalid state. 
+      if (key == modKey) {
+        // If the rising key is the modKey, reset modKey to an invalid state to disable it
+        if (secondaryKey < 0) { 
+          // If no secondary key was hit, that means we want a one button shortcut; execute the function at modKey,modKey
+          macros[currentProfile][modKey][modKey]();
+        }
+        modKey = -1;
+      }
     }
   }
 }

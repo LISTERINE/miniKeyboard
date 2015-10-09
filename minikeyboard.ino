@@ -19,6 +19,12 @@ Adafruit_SSD1306 display(OLED_RESET);
 #endif
 
 
+// The display seem to not want to start up when you aren't programming it
+// fire this reboot with a key combo to fix that
+#define CPU_RESTART_ADDR (uint32_t *)0xE000ED0C
+#define CPU_RESTART_VAL 0x5FA0004
+#define CPU_RESTART (*CPU_RESTART_ADDR = CPU_RESTART_VAL);
+
 /*
  * End display imports and init
  *******************************************/
@@ -46,8 +52,8 @@ char *profiles[KEYCOUNT] = {
   "UBUNTU_0",
   "CENTOS_0",
   "OSX_0",
-  "RESERVED_0",
-  "WINDOWS_1"
+  "WINDOWS_1",
+  "REBOOT"
 };
 
 enum ProfileType {
@@ -55,8 +61,8 @@ enum ProfileType {
   UBUNTU_0,
   CENTOS_0,
   OSX_0,
-  RESERVED_0,
-  WINDOWS_1
+  WINDOWS_1,
+  REBOOT
 };
 
 /*
@@ -148,7 +154,7 @@ void (*macros[PROFILECOUNT][KEYCOUNT][KEYCOUNT])() = {
     {sshVDB,         notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Corp macros
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {setProfile_0,   setProfile_1,    setProfile_2,    setProfile_3, setProfile_4,   setProfile_5  }  // Profile Switch
+    {setProfile_0,   setProfile_1,    setProfile_2,    setProfile_3, setProfile_4,   reboot        }  // Profile Switch and reboot
   },
   // Ubuntu functions
   {
@@ -157,7 +163,7 @@ void (*macros[PROFILECOUNT][KEYCOUNT][KEYCOUNT])() = {
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {setProfile_0,   setProfile_1,    setProfile_2,    setProfile_3, setProfile_4,   setProfile_5  }  // Profile Switch
+    {setProfile_0,   setProfile_1,    setProfile_2,    setProfile_3, setProfile_4,   reboot        }  // Profile Switch and reboot
   },
   // Centos functions
   {
@@ -166,7 +172,7 @@ void (*macros[PROFILECOUNT][KEYCOUNT][KEYCOUNT])() = {
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {setProfile_0,   setProfile_1,    setProfile_2,    setProfile_3, setProfile_4,   setProfile_5  }  // Profile Switch
+    {setProfile_0,   setProfile_1,    setProfile_2,    setProfile_3, setProfile_4,   reboot        }  // Profile Switch and reboot
   },
   // OSX functions
   {
@@ -175,7 +181,7 @@ void (*macros[PROFILECOUNT][KEYCOUNT][KEYCOUNT])() = {
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {setProfile_0,   setProfile_1,    setProfile_2,    setProfile_3, setProfile_4,   setProfile_5  }  // Profile Switch
+    {setProfile_0,   setProfile_1,    setProfile_2,    setProfile_3, setProfile_4,   reboot        }  // Profile Switch and reboot
   },
   // RESERVED_0 functions
   {
@@ -184,7 +190,7 @@ void (*macros[PROFILECOUNT][KEYCOUNT][KEYCOUNT])() = {
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {setProfile_0,   setProfile_1,    setProfile_2,    setProfile_3, setProfile_4,   setProfile_5  }  // Profile Switch
+    {setProfile_0,   setProfile_1,    setProfile_2,    setProfile_3, setProfile_4,   reboot        }  // Profile Switch and reboot
   },
   // WINDOWS_2 functions
   {
@@ -193,7 +199,7 @@ void (*macros[PROFILECOUNT][KEYCOUNT][KEYCOUNT])() = {
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {setProfile_0,   setProfile_1,    setProfile_2,    setProfile_3, setProfile_4,   setProfile_5  }  // Profile Switch
+    {setProfile_0,   setProfile_1,    setProfile_2,    setProfile_3, setProfile_4,   reboot        }  // Profile Switch and reboot
   }
 };
 
@@ -202,63 +208,53 @@ void (*macros[PROFILECOUNT][KEYCOUNT][KEYCOUNT])() = {
 char *macroTitles[PROFILECOUNT][KEYCOUNT+1][KEYCOUNT] = { // +1 for row types
   // Windows functions
   {
-    {"Remote",     "Docker",    "Corp Macros", "Reserved", "Reserved", "Profile Switch"}, // Titles
-    {"*Dev Env",   "",          "",            "",         "",           ""            }, // Remote
-    {"",           "*",         "",            "",         "",           ""            }, // Docker
-    {"SSH VDB",    "",          "*",           "",         "",           ""            }, // Corp macros
-    {"",           "",          "",            "*",        "",           ""            }, // Reserved
-    {"",           "",          "",            "",         "*",          ""            }, // Reserved
-    {"Windows 1", "Ubuntu",    "Centos",       "OSX",      "Reserved",   "*Windows 2"  }  // Profile Switch
+    {"Remote",     "Docker",    "Corp Macros", "Reserved", "Reserved",  "Profiles and Reset"}, // Titles
+    {"*Dev Env",   "",          "",            "",         "",          ""                  }, // Remote
+    {"",           "*",         "",            "",         "",          ""                  }, // Docker
+    {"SSH VDB",    "",          "*",           "",         "",          ""                  }, // Corp macros
+    {"",           "",          "",            "*",        "",          ""                  }, // Reserved
+    {"",           "",          "",            "",         "*",         ""                  }, // Reserved
+    {"Windows 1", "Ubuntu",    "Centos",       "OSX",      "Windows 2", "*RESET "           }  // Profile Switch and reboot
   },
   // Ubuntu functions
   {
-    {"Remote",     "Docker",    "Corp Macros", "Reserved", "Reserved", "Profile Switch"}, // Titles
-    {"*",           "",         "",            "",         "",         ""              }, // Remote
-    {"Ubuntu --rm", "*",        "",            "",         "",         ""              }, // Docker
-    {"",            "",         "*",           "",         "",         ""              }, // Reserved
-    {"",            "",         "",            "*",        "",         ""              }, // Reserved
-    {"",            "",         "",            "",         "*",        ""              }, // Reserved
-    {"Windows 1",   "Ubuntu",   "Centos",      "OSX",      "Reserved", "*Windows 2"    }  // Profile Switch
+    {"Remote",     "Docker",    "Corp Macros", "Reserved", "Reserved",  "Profiles and Reset"}, // Titles
+    {"*",           "",         "",            "",         "",          ""                  }, // Remote
+    {"Ubuntu --rm", "*",        "",            "",         "",          ""                  }, // Docker
+    {"",            "",         "*",           "",         "",          ""                  }, // Reserved
+    {"",            "",         "",            "*",        "",          ""                  }, // Reserved
+    {"",            "",         "",            "",         "*",         ""                  }, // Reserved
+    {"Windows 1",   "Ubuntu",   "Centos",      "OSX",      "Windows 2", "*RESET"            }  // Profile Switch and reboot
   },
   // Centos functions
   {
-    {"Remote",     "Docker",    "Corp Macros", "Reserved", "Reserved", "Profile Switch"}, // Titles
-    {"*",           "",         "",            "",         "",         ""              }, // Remote
-    {"Ubuntu --rm", "*",        "",            "",         "",         ""              }, // Docker
-    {"",            "",         "*",           "",         "",         ""              }, // Reserved
-    {"",            "",         "",            "*",        "",         ""              }, // Reserved
-    {"",            "",         "",            "",         "*",        ""              }, // Reserved
-    {"Windows 1",   "Ubuntu",   "Centos",      "OSX",      "Reserved", "*Windows 2"    }  // Profile Switch
+    {"Remote",     "Docker",    "Corp Macros", "Reserved", "Reserved",  "Profiles and Reset"}, // Titles
+    {"*",           "",         "",            "",         "",          ""                  }, // Remote
+    {"Ubuntu --rm", "*",        "",            "",         "",          ""                  }, // Docker
+    {"",            "",         "*",           "",         "",          ""                  }, // Reserved
+    {"",            "",         "",            "*",        "",          ""                  }, // Reserved
+    {"",            "",         "",            "",         "*",         ""                  }, // Reserved
+    {"Windows 1",   "Ubuntu",   "Centos",      "OSX",      "Windows 2", "*RESET"            }  // Profile Switch and reboot
   },
   // OSX functions
   {
-    {"Remote",     "Docker",    "Corp Macros", "Reserved", "Reserved", "Profile Switch"}, // Titles
-    {"*",           "",         "",            "",         "",         ""              }, // Remote
-    {"Ubuntu --rm", "*",        "",            "",         "",         ""              }, // Docker
-    {"",            "",         "*",           "",         "",         ""              }, // Reserved
-    {"",            "",         "",            "*",        "",         ""              }, // Reserved
-    {"",            "",         "",            "",         "*",        ""              }, // Reserved
-    {"Windows 1",   "Ubuntu",   "Centos",      "OSX",      "Reserved", "*Windows 2"    }  // Profile Switch
+    {"Remote",     "Docker",    "Corp Macros", "Reserved", "Reserved",  "Profiles and Reset"}, // Titles
+    {"*",           "",         "",            "",         "",          ""                  }, // Remote
+    {"Ubuntu --rm", "*",        "",            "",         "",          ""                  }, // Docker
+    {"",            "",         "*",           "",         "",          ""                  }, // Reserved
+    {"",            "",         "",            "*",        "",          ""                  }, // Reserved
+    {"",            "",         "",            "",         "*",         ""                  }, // Reserved
+    {"Windows 1",   "Ubuntu",   "Centos",      "OSX",      "Windows 2", "*RESET"            }  // Profile Switch and reboot
   },
-  // RESERVED_0 functions
+  // Windows_1 functions
   {
-    {"Remote",     "Docker",    "Corp Macros", "Reserved", "Reserved", "Profile Switch"}, // Titles
-    {"*",          "",          "",            "",         "",           ""            }, // Remote
-    {"",           "*",         "",            "",         "",           ""            }, // Docker
-    {"",           "",          "*",           "",         "",           ""            }, // Reserved
-    {"",           "",          "",            "*",        "",           ""            }, // Reserved
-    {"",           "",          "",            "",         "*",          ""            }, // Reserved
-    {"Windows 1",  "Ubuntu",    "Centos",      "OSX",      "Reserved",   "*Windows 2"  }  // Profile Switch
-  },
-  // WINDOWS_2 functions
-  {
-    {"Remote",     "Docker",    "Corp Macros", "Reserved", "Reserved", "Profile Switch"}, // Titles
-    {"*",          "",          "",            "",         "",           ""            }, // Remote
-    {"",           "*",         "",            "",         "",           ""            }, // Docker
-    {"",           "",          "*",           "",         "",           ""            }, // Reserved
-    {"",           "",          "",            "*",        "",           ""            }, // Reserved
-    {"",           "",          "",            "",         "*",          ""            }, // Reserved
-    {"Windows 1",  "Ubuntu",    "Centos",      "OSX",      "Reserved",   "*Windows 2"  }  // Profile Switch
+    {"Remote",     "Docker",    "Corp Macros", "Reserved", "Reserved",  "Profiles and Reset"}, // Titles
+    {"*",          "",          "",            "",         "",          ""                  }, // Remote
+    {"",           "*",         "",            "",         "",          ""                  }, // Docker
+    {"",           "",          "*",           "",         "",          ""                  }, // Reserved
+    {"",           "",          "",            "*",        "",          ""                  }, // Reserved
+    {"",           "",          "",            "",         "*",         ""                  }, // Reserved
+    {"Windows 1",  "Ubuntu",    "Centos",      "OSX",      "Windows 2", "*RESET"            }  // Profile Switch and reboot
   }
 };
 
@@ -376,6 +372,11 @@ void sshVDB() {
   Keyboard.send_now();
 }
 
+// Restart the teensy
+void reboot() {
+  CPU_RESTART
+}
+
 /*
  * Macro section end
  *******************************************/
@@ -409,12 +410,6 @@ void setProfile_3() {
 }
 
 void setProfile_4() {
-  currentProfile = RESERVED_0;
-  displayData[PROFILE] = profiles[RESERVED_0];
-  updateDisplayArray();
-}
-
-void setProfile_5() {
   currentProfile = WINDOWS_1;
   displayData[PROFILE] = profiles[WINDOWS_1];
   updateDisplayArray();
@@ -444,6 +439,7 @@ void self() {}
  */
  
 void setup() {
+
   /*##########################################
    # Setup pins for keyboard IO
    #*/
@@ -471,7 +467,7 @@ void setup() {
    # Display init
    #*/
   Serial.begin(9600);
-
+  
   // by default, we'll generate the high voltage from the 3.3v line internally! (neat!)
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialize with the I2C addr 0x3D (for the 128x64)
   // init done
@@ -480,7 +476,6 @@ void setup() {
   // Since the buffer is intialized with an Adafruit splashscreen
   // internally, this will display the splashscreen.
   display.display();
-  delay(2000);
 
   // Clear the buffer.
   display.clearDisplay();

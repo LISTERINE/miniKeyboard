@@ -48,21 +48,21 @@ Adafruit_SSD1306 display(OLED_RESET);
  */
  
 char *profiles[KEYCOUNT] = {
-  "WINDOWS_0",
-  "UBUNTU_0",
-  "CENTOS_0",
-  "OSX_0",
   "WINDOWS_1",
-  "REBOOT"
+  "UBUNTU_1",
+  "CENTOS_1",
+  "OSX_1",
+  "RESERVED_1",
+  "WINDOWS_2"
 };
 
 enum ProfileType {
-  WINDOWS_0,
-  UBUNTU_0,
-  CENTOS_0,
-  OSX_0,
   WINDOWS_1,
-  REBOOT
+  UBUNTU_1,
+  CENTOS_1,
+  OSX_1,
+  RESERVED_1,
+  WINDOWS_2
 };
 
 /*
@@ -103,7 +103,7 @@ int modKey = -1;
 int secondaryKey = -1;
 
 // The initial profile
-ProfileType currentProfile = WINDOWS_0;
+ProfileType currentProfile = WINDOWS_1;
 
 // Display data array. +1 to display profile type
 char *displayData[KEYCOUNT+1] = {
@@ -149,57 +149,57 @@ enum displayVal {
 void (*macros[PROFILECOUNT][KEYCOUNT][KEYCOUNT])() = {
   // Windows functions
   {
-    {sshWorkEnv,     notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Remote
+    {sshWorkEnv,     sshVDB,         notImplemented, notImplemented, notImplemented, notImplemented}, // Remote
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Docker
-    {sshVDB,         notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Corp macros
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Programming
+    {notImplemented, notImplemented, notImplemented, reboot,         notImplemented, notImplemented}, // Meta keys
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {setProfile_0,   setProfile_1,    setProfile_2,    setProfile_3, setProfile_4,   reboot        }  // Profile Switch and reboot
+    {setProfile_0,   setProfile_1,    setProfile_2,  setProfile_3,   setProfile_4,   setProfile_5  }  // Profile Switch
   },
   // Ubuntu functions
   {
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Remote
     {dockerUbuntu,   notImplemented, dockerCentos,   notImplemented, notImplemented, notImplemented}, // Docker
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Programming
+    {notImplemented, notImplemented, notImplemented, reboot,         notImplemented, notImplemented}, // Meta keys
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {setProfile_0,   setProfile_1,    setProfile_2,    setProfile_3, setProfile_4,   reboot        }  // Profile Switch and reboot
+    {setProfile_0,   setProfile_1,    setProfile_2,  setProfile_3,   setProfile_4,   setProfile_5  }  // Profile Switch
   },
   // Centos functions
   {
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Remote
     {dockerUbuntu,   notImplemented, dockerCentos,   notImplemented, notImplemented, notImplemented}, // Docker
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Programming
+    {notImplemented, notImplemented, notImplemented, reboot,         notImplemented, notImplemented}, // Meta keys
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {setProfile_0,   setProfile_1,    setProfile_2,    setProfile_3, setProfile_4,   reboot        }  // Profile Switch and reboot
+    {setProfile_0,   setProfile_1,    setProfile_2,  setProfile_3,   setProfile_4,   setProfile_5  }  // Profile Switch
   },
   // OSX functions
   {
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Remote
     {dockerUbuntu,   notImplemented, dockerCentos,   notImplemented, notImplemented, notImplemented}, // Docker
+    {githubClone,    notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Programming
+    {notImplemented, notImplemented, notImplemented, reboot,         notImplemented, notImplemented}, // Meta keys
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {setProfile_0,   setProfile_1,    setProfile_2,    setProfile_3, setProfile_4,   reboot        }  // Profile Switch and reboot
+    {setProfile_0,   setProfile_1,    setProfile_2,  setProfile_3,   setProfile_4,   setProfile_5  }  // Profile Switch
   },
-  // RESERVED_0 functions
+  // RESERVED_1 functions
   {
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Remote
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Docker
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Programming
+    {notImplemented, notImplemented, notImplemented, reboot,         notImplemented, notImplemented}, // Meta keys
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {setProfile_0,   setProfile_1,    setProfile_2,    setProfile_3, setProfile_4,   reboot        }  // Profile Switch and reboot
+    {setProfile_0,   setProfile_1,    setProfile_2,  setProfile_3,   setProfile_4,   setProfile_5  }  // Profile Switch
   },
   // WINDOWS_2 functions
   {
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Remote
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Docker
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Programming
+    {notImplemented, notImplemented, notImplemented, reboot,         notImplemented, notImplemented}, // Meta keys
     {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {setProfile_0,   setProfile_1,    setProfile_2,    setProfile_3, setProfile_4,   reboot        }  // Profile Switch and reboot
+    {setProfile_0,   setProfile_1,    setProfile_2,  setProfile_3,   setProfile_4,   setProfile_5  }  // Profile Switch
   }
 };
 
@@ -208,53 +208,63 @@ void (*macros[PROFILECOUNT][KEYCOUNT][KEYCOUNT])() = {
 char *macroTitles[PROFILECOUNT][KEYCOUNT+1][KEYCOUNT] = { // +1 for row types
   // Windows functions
   {
-    {"Remote",     "Docker",    "Corp Macros", "Reserved", "Reserved",  "Profiles and Reset"}, // Titles
-    {"*Dev Env",   "",          "",            "",         "",          ""                  }, // Remote
-    {"",           "*",         "",            "",         "",          ""                  }, // Docker
-    {"SSH VDB",    "",          "*",           "",         "",          ""                  }, // Corp macros
-    {"",           "",          "",            "*",        "",          ""                  }, // Reserved
-    {"",           "",          "",            "",         "*",         ""                  }, // Reserved
-    {"Windows 1", "Ubuntu",    "Centos",       "OSX",      "Windows 2", "*RESET "           }  // Profile Switch and reboot
+    {"Remote",     "Docker",    "Programming", "Meta Keys", "Reserved",   "Profile Switch"}, // Titles
+    {"*Dev Env",   "SSH VDB",   "",            "",         "",           ""               }, // Remote
+    {"",           "*",         "",            "",         "",           ""               }, // Docker
+    {"",           "",          "*",           "",         "",           ""               }, // Programming
+    {"",           "",          "",            "*REBOOT",  "",           ""               }, // Meta keys
+    {"",           "",          "",            "",         "*",          ""               }, // Reserved
+    {"Windows 1", "Ubuntu",    "Centos",       "OSX",      "Reserved 1", "*Windows 2"     }  // Profile Switch
   },
   // Ubuntu functions
   {
-    {"Remote",     "Docker",    "Corp Macros", "Reserved", "Reserved",  "Profiles and Reset"}, // Titles
-    {"*",           "",         "",            "",         "",          ""                  }, // Remote
-    {"Ubuntu --rm", "*",        "",            "",         "",          ""                  }, // Docker
-    {"",            "",         "*",           "",         "",          ""                  }, // Reserved
-    {"",            "",         "",            "*",        "",          ""                  }, // Reserved
-    {"",            "",         "",            "",         "*",         ""                  }, // Reserved
-    {"Windows 1",   "Ubuntu",   "Centos",      "OSX",      "Windows 2", "*RESET"            }  // Profile Switch and reboot
+    {"Remote",     "Docker",    "Programming", "Meta Keys", "Reserved",  "Profile Switch"}, // Titles
+    {"*",           "",         "",            "",         "",          ""               }, // Remote
+    {"Ubuntu --rm", "*",        "",            "",         "",          ""               }, // Docker
+    {"",            "",         "*",           "",         "",          ""               }, // Programming
+    {"",            "",         "",            "*REBOOT",  "",          ""               }, // Meta keys
+    {"",            "",         "",            "",         "*",         ""               }, // Reserved
+    {"Windows 1",   "Ubuntu",   "Centos",      "OSX",      "Reserved 1", "*Windows 2"    }  // Profile Switch
   },
   // Centos functions
   {
-    {"Remote",     "Docker",    "Corp Macros", "Reserved", "Reserved",  "Profiles and Reset"}, // Titles
-    {"*",           "",         "",            "",         "",          ""                  }, // Remote
-    {"Ubuntu --rm", "*",        "",            "",         "",          ""                  }, // Docker
-    {"",            "",         "*",           "",         "",          ""                  }, // Reserved
-    {"",            "",         "",            "*",        "",          ""                  }, // Reserved
-    {"",            "",         "",            "",         "*",         ""                  }, // Reserved
-    {"Windows 1",   "Ubuntu",   "Centos",      "OSX",      "Windows 2", "*RESET"            }  // Profile Switch and reboot
+    {"Remote",     "Docker",    "Programming", "Meta Keys", "Reserved",  "Profile Switch"}, // Titles
+    {"*",           "",         "",            "",         "",          ""               }, // Remote
+    {"Ubuntu --rm", "*",        "",            "",         "",          ""               }, // Docker
+    {"",            "",         "*",           "",         "",          ""               }, // Programming
+    {"",            "",         "",            "*REBOOT",  "",          ""               }, // Meta keys
+    {"",            "",         "",            "",         "*",         ""               }, // Reserved
+    {"Windows 1",   "Ubuntu",   "Centos",      "OSX",      "Reserved 1", "*Windows 2"    }  // Profile Switch
   },
   // OSX functions
   {
-    {"Remote",     "Docker",    "Corp Macros", "Reserved", "Reserved",  "Profiles and Reset"}, // Titles
-    {"*",           "",         "",            "",         "",          ""                  }, // Remote
-    {"Ubuntu --rm", "*",        "",            "",         "",          ""                  }, // Docker
-    {"",            "",         "*",           "",         "",          ""                  }, // Reserved
-    {"",            "",         "",            "*",        "",          ""                  }, // Reserved
-    {"",            "",         "",            "",         "*",         ""                  }, // Reserved
-    {"Windows 1",   "Ubuntu",   "Centos",      "OSX",      "Windows 2", "*RESET"            }  // Profile Switch and reboot
+    {"Remote",        "Docker",    "Programming", "Meta Keys", "Reserved",  "Profile Switch"}, // Titles
+    {"*",             "",         "",            "",         "",          ""               }, // Remote
+    {"Ubuntu --rm",   "*",        "",            "",         "",          ""               }, // Docker
+    {"github cloner", "",         "*",           "",         "",          ""               }, // Programming
+    {"",              "",         "",            "*REBOOT",  "",          ""               }, // Meta keys
+    {"",              "",         "",            "",         "*",         ""               }, // Reserved
+    {"Windows 1",     "Ubuntu",   "Centos",      "OSX",      "Reserved 1", "*Windows 2"    }  // Profile Switch
   },
-  // Windows_1 functions
+  // RESERVED_1 functions
   {
-    {"Remote",     "Docker",    "Corp Macros", "Reserved", "Reserved",  "Profiles and Reset"}, // Titles
-    {"*",          "",          "",            "",         "",          ""                  }, // Remote
-    {"",           "*",         "",            "",         "",          ""                  }, // Docker
-    {"",           "",          "*",           "",         "",          ""                  }, // Reserved
-    {"",           "",          "",            "*",        "",          ""                  }, // Reserved
-    {"",           "",          "",            "",         "*",         ""                  }, // Reserved
-    {"Windows 1",  "Ubuntu",    "Centos",      "OSX",      "Windows 2", "*RESET"            }  // Profile Switch and reboot
+    {"Remote",     "Docker",    "Programming", "Meta Keys", "Reserved",  "Profile Switch"}, // Titles
+    {"*",          "",          "",            "",         "",          ""               }, // Remote
+    {"",           "*",         "",            "",         "",          ""               }, // Docker
+    {"",           "",          "*",           "",         "",          ""               }, // Programming
+    {"",           "",          "",            "*REBOOT",  "",          ""               }, // Meta keys
+    {"",           "",          "",            "",         "*",         ""               }, // Reserved
+    {"Windows 1",  "Ubuntu",    "Centos",      "OSX",      "Reserved 1", "*Windows 2"    }  // Profile Switch
+  },
+  // WINDOWS_2 functions
+  {
+    {"Remote",     "Docker",    "Programming", "Meta Keys", "Reserved",  "Profile Switch"}, // Titles
+    {"*",          "",          "",            "",         "",          ""               }, // Remote
+    {"",           "*",         "",            "",         "",          ""               }, // Docker
+    {"",           "",          "*",           "",         "",          ""               }, // Programming
+    {"",           "",          "",            "*REBOOT",  "",          ""               }, // Meta keys
+    {"",           "",          "",            "",         "*",         ""               }, // Reserved
+    {"Windows 1",  "Ubuntu",    "Centos",      "OSX",      "Reserved 1", "*Windows 2"    }  // Profile Switch
   }
 };
 
@@ -309,15 +319,60 @@ void updateDisplayArray() {
  * Handy shortcuts get setup here, not for actual full macros
  */
 
-// Shortcut for hitting win+r
-void winR(int sleep) {
+// Shortcut for hitting win+r or command+space
+void guiGetProgram(int sleep) {
   Keyboard.set_modifier(MODIFIERKEY_GUI); // Press and hold win/clover key
-  Keyboard.set_key1(KEY_R);
+  if ((currentProfile == WINDOWS_1) || (currentProfile == WINDOWS_2)) {
+    Keyboard.set_key1(KEY_R);
+  }
+  if(currentProfile == OSX_1) {
+    Keyboard.set_key1(KEY_SPACE);
+  }
   Keyboard.send_now();
   Keyboard.set_key1(0);
   Keyboard.set_modifier(0); // Clear modifiers
   Keyboard.send_now();
   delay(sleep);
+}
+
+// Hits ctrl or command (based on profile) and then a key ex. ctrl/command+c
+void ctrlCommand(int key) {
+  if ((currentProfile == WINDOWS_1) || (currentProfile == WINDOWS_2)) {
+    Keyboard.set_modifier(MODIFIERKEY_CTRL);
+  }
+  if(currentProfile == OSX_1) {
+    Keyboard.set_modifier(MODIFIERKEY_GUI); // Press and hold win/clover key
+  }
+  Keyboard.set_key1(key);
+  Keyboard.send_now();
+  Keyboard.set_key1(0);
+  Keyboard.set_modifier(0); // Clear modifiers
+  Keyboard.send_now();
+  delay(50);
+}
+
+// Launches an interpreter
+void guiPrompt() {
+  guiGetProgram(1000);
+  if ((currentProfile == WINDOWS_1) || (currentProfile == WINDOWS_2)) {
+    Keyboard.println("cmd");
+  }
+  if(currentProfile == OSX_1) {
+    Keyboard.println("iterm"); // Press and hold win/clover key
+  }
+  Keyboard.send_now();
+  delay(800);
+}
+
+void cdHome() {
+  if ((currentProfile == WINDOWS_1) || (currentProfile == WINDOWS_2)) {
+    Keyboard.println("cd %USERPROFILE%");
+  }
+  else {
+    Keyboard.println("cd ~");
+  }
+  Keyboard.send_now();
+  delay(50);
 }
 
 // Shortcut for maximizing windows in windows
@@ -346,11 +401,18 @@ void winMaximize(boolean withTmux) {
  */
 // Remote stuff
 void sshWorkEnv() {
-  winR(1000);
+  guiGetProgram(1000);
   Keyboard.println("\"C:\\Program Files (x86)\\PuTTY\\putty.exe\" -load \"DevEnv\"");
   Keyboard.send_now();
   delay(1500);
   winMaximize(true);
+}
+
+void sshVDB() {
+  sshWorkEnv();
+  delay(700);
+  Keyboard.println("vulndb");
+  Keyboard.send_now();
 }
 
 // Docker section
@@ -364,12 +426,15 @@ void dockerCentos() {
   Keyboard.send_now();
 }
 
-// Corp macros
-void sshVDB() {
-  sshWorkEnv();
-  delay(700);
-  Keyboard.println("vulndb");
-  Keyboard.send_now();
+// Programming functions
+void githubClone() {
+  ctrlCommand(KEY_L);
+  ctrlCommand(KEY_C);
+  guiPrompt();
+  cdHome();
+  Keyboard.print("git clone ");
+  ctrlCommand(KEY_V);
+  Keyboard.println(".git");
 }
 
 // Restart the teensy
@@ -386,32 +451,38 @@ void reboot() {
  */
  
 void setProfile_0() {
-  currentProfile = WINDOWS_0;
-  displayData[PROFILE] = profiles[WINDOWS_0];
+  currentProfile = WINDOWS_1;
+  displayData[PROFILE] = profiles[WINDOWS_1];
   updateDisplayArray();
 }
 
 void setProfile_1() {
-  currentProfile = UBUNTU_0;
-  displayData[PROFILE] = profiles[UBUNTU_0];
+  currentProfile = UBUNTU_1;
+  displayData[PROFILE] = profiles[UBUNTU_1];
   updateDisplayArray();
 }
 
 void setProfile_2() {
-  currentProfile = CENTOS_0;
-  displayData[PROFILE] = profiles[CENTOS_0];
+  currentProfile = CENTOS_1;
+  displayData[PROFILE] = profiles[CENTOS_1];
   updateDisplayArray();
 }
 
 void setProfile_3() {
-  currentProfile = OSX_0;
-  displayData[PROFILE] = profiles[OSX_0];
+  currentProfile = OSX_1;
+  displayData[PROFILE] = profiles[OSX_1];
   updateDisplayArray();
 }
 
 void setProfile_4() {
-  currentProfile = WINDOWS_1;
-  displayData[PROFILE] = profiles[WINDOWS_1];
+  currentProfile = RESERVED_1;
+  displayData[PROFILE] = profiles[RESERVED_1];
+  updateDisplayArray();
+}
+
+void setProfile_5() {
+  currentProfile = WINDOWS_2;
+  displayData[PROFILE] = profiles[WINDOWS_2];
   updateDisplayArray();
 }
 

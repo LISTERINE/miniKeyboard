@@ -80,13 +80,14 @@ enum ProfileType {
 // which is appropriate for most mechanical pushbuttons
 // if a key is too "sensitive" to rapid touch, you canincrease this time.
 Bounce keys[KEYCOUNT] = {
-  Bounce(22, 10),
-  Bounce(21, 10),
-  Bounce(20, 10),
-  Bounce(3, 10),
+  Bounce(0, 10),
+  Bounce(1, 10),
+  Bounce(6, 10),
+  Bounce(3, 10), // burned out pin 3 desoldering...oops...
   Bounce(4, 10),
   Bounce(5, 10)
 };
+
 
 /*
  * End key setup section
@@ -103,7 +104,7 @@ int modKey = -1;
 int secondaryKey = -1;
 
 // The initial profile
-ProfileType currentProfile = WINDOWS_1;
+ProfileType currentProfile = OSX_1;
 
 // Display data array. +1 to display profile type
 char *displayData[KEYCOUNT+1] = {
@@ -128,191 +129,6 @@ enum displayVal {
 
 /*
  * State vars end
- *******************************************/
-
-/*******************************************
- * Here we fill up our array of functions and set their corresponding string representations
- * index [0][1] means key 0 is the modkey and then they hit key 1
- * function key ----------->
- * modifier key {{ self, f01,  f02 },
- *            |  { f10,  self, f12 },
- *            |  { f20,  f21,  self}}
- *            V
- *  The array is grouped into sections, based on the currently selected OS/profile
- *  
- *  functions at n,n (example [0][0]) require only one key press and take no modifier other than the current profile
- *  
- *  Make sure when you update a function you update the corresponding string to keep track of it
- *  
- */
-
-void (*macros[PROFILECOUNT][KEYCOUNT][KEYCOUNT])() = {
-  // Windows functions
-  {
-    {sshWorkEnv,     sshVDB,         notImplemented, notImplemented, notImplemented, notImplemented}, // Remote
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Docker
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Programming
-    {notImplemented, notImplemented, notImplemented, reboot,         notImplemented, notImplemented}, // Meta keys
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {setProfile_0,   setProfile_1,    setProfile_2,  setProfile_3,   setProfile_4,   setProfile_5  }  // Profile Switch
-  },
-  // Ubuntu functions
-  {
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Remote
-    {dockerUbuntu,   notImplemented, dockerCentos,   notImplemented, notImplemented, notImplemented}, // Docker
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Programming
-    {notImplemented, notImplemented, notImplemented, reboot,         notImplemented, notImplemented}, // Meta keys
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {setProfile_0,   setProfile_1,    setProfile_2,  setProfile_3,   setProfile_4,   setProfile_5  }  // Profile Switch
-  },
-  // Centos functions
-  {
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Remote
-    {dockerUbuntu,   notImplemented, dockerCentos,   notImplemented, notImplemented, notImplemented}, // Docker
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Programming
-    {notImplemented, notImplemented, notImplemented, reboot,         notImplemented, notImplemented}, // Meta keys
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {setProfile_0,   setProfile_1,    setProfile_2,  setProfile_3,   setProfile_4,   setProfile_5  }  // Profile Switch
-  },
-  // OSX functions
-  {
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Remote
-    {dockerUbuntu,   notImplemented, dockerCentos,   notImplemented, notImplemented, notImplemented}, // Docker
-    {githubClone,    notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Programming
-    {notImplemented, notImplemented, notImplemented, reboot,         notImplemented, notImplemented}, // Meta keys
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {setProfile_0,   setProfile_1,    setProfile_2,  setProfile_3,   setProfile_4,   setProfile_5  }  // Profile Switch
-  },
-  // RESERVED_1 functions
-  {
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Remote
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Docker
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Programming
-    {notImplemented, notImplemented, notImplemented, reboot,         notImplemented, notImplemented}, // Meta keys
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {setProfile_0,   setProfile_1,    setProfile_2,  setProfile_3,   setProfile_4,   setProfile_5  }  // Profile Switch
-  },
-  // WINDOWS_2 functions
-  {
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Remote
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Docker
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Programming
-    {notImplemented, notImplemented, notImplemented, reboot,         notImplemented, notImplemented}, // Meta keys
-    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Reserved
-    {setProfile_0,   setProfile_1,    setProfile_2,  setProfile_3,   setProfile_4,   setProfile_5  }  // Profile Switch
-  }
-};
-
-// String representations of functions for display
-// * keys are one button press keys
-char *macroTitles[PROFILECOUNT][KEYCOUNT+1][KEYCOUNT] = { // +1 for row types
-  // Windows functions
-  {
-    {"Remote",     "Docker",    "Programming", "Meta Keys", "Reserved",   "Profile Switch"}, // Titles
-    {"*Dev Env",   "SSH VDB",   "",            "",         "",           ""               }, // Remote
-    {"",           "*",         "",            "",         "",           ""               }, // Docker
-    {"",           "",          "*",           "",         "",           ""               }, // Programming
-    {"",           "",          "",            "*REBOOT",  "",           ""               }, // Meta keys
-    {"",           "",          "",            "",         "*",          ""               }, // Reserved
-    {"Windows 1", "Ubuntu",    "Centos",       "OSX",      "Reserved 1", "*Windows 2"     }  // Profile Switch
-  },
-  // Ubuntu functions
-  {
-    {"Remote",     "Docker",    "Programming", "Meta Keys", "Reserved",  "Profile Switch"}, // Titles
-    {"*",           "",         "",            "",         "",          ""               }, // Remote
-    {"Ubuntu --rm", "*",        "",            "",         "",          ""               }, // Docker
-    {"",            "",         "*",           "",         "",          ""               }, // Programming
-    {"",            "",         "",            "*REBOOT",  "",          ""               }, // Meta keys
-    {"",            "",         "",            "",         "*",         ""               }, // Reserved
-    {"Windows 1",   "Ubuntu",   "Centos",      "OSX",      "Reserved 1", "*Windows 2"    }  // Profile Switch
-  },
-  // Centos functions
-  {
-    {"Remote",     "Docker",    "Programming", "Meta Keys", "Reserved",  "Profile Switch"}, // Titles
-    {"*",           "",         "",            "",         "",          ""               }, // Remote
-    {"Ubuntu --rm", "*",        "",            "",         "",          ""               }, // Docker
-    {"",            "",         "*",           "",         "",          ""               }, // Programming
-    {"",            "",         "",            "*REBOOT",  "",          ""               }, // Meta keys
-    {"",            "",         "",            "",         "*",         ""               }, // Reserved
-    {"Windows 1",   "Ubuntu",   "Centos",      "OSX",      "Reserved 1", "*Windows 2"    }  // Profile Switch
-  },
-  // OSX functions
-  {
-    {"Remote",        "Docker",    "Programming", "Meta Keys", "Reserved",  "Profile Switch"}, // Titles
-    {"*",             "",         "",            "",         "",          ""               }, // Remote
-    {"Ubuntu --rm",   "*",        "",            "",         "",          ""               }, // Docker
-    {"github cloner", "",         "*",           "",         "",          ""               }, // Programming
-    {"",              "",         "",            "*REBOOT",  "",          ""               }, // Meta keys
-    {"",              "",         "",            "",         "*",         ""               }, // Reserved
-    {"Windows 1",     "Ubuntu",   "Centos",      "OSX",      "Reserved 1", "*Windows 2"    }  // Profile Switch
-  },
-  // RESERVED_1 functions
-  {
-    {"Remote",     "Docker",    "Programming", "Meta Keys", "Reserved",  "Profile Switch"}, // Titles
-    {"*",          "",          "",            "",         "",          ""               }, // Remote
-    {"",           "*",         "",            "",         "",          ""               }, // Docker
-    {"",           "",          "*",           "",         "",          ""               }, // Programming
-    {"",           "",          "",            "*REBOOT",  "",          ""               }, // Meta keys
-    {"",           "",          "",            "",         "*",         ""               }, // Reserved
-    {"Windows 1",  "Ubuntu",    "Centos",      "OSX",      "Reserved 1", "*Windows 2"    }  // Profile Switch
-  },
-  // WINDOWS_2 functions
-  {
-    {"Remote",     "Docker",    "Programming", "Meta Keys", "Reserved",  "Profile Switch"}, // Titles
-    {"*",          "",          "",            "",         "",          ""               }, // Remote
-    {"",           "*",         "",            "",         "",          ""               }, // Docker
-    {"",           "",          "*",           "",         "",          ""               }, // Programming
-    {"",           "",          "",            "*REBOOT",  "",          ""               }, // Meta keys
-    {"",           "",          "",            "",         "*",         ""               }, // Reserved
-    {"Windows 1",  "Ubuntu",    "Centos",      "OSX",      "Reserved 1", "*Windows 2"    }  // Profile Switch
-  }
-};
-
-/*
- * Array of functions section end
- *******************************************/
- 
-/*******************************************
- * Display update convenience functions
- */
-
-void formatDisplayStr(char *fmt, ...){
-  char buf[128]; // resulting string limited to 128 chars
-  va_list args;
-  va_start (args, fmt );
-  vsnprintf(buf, 128, fmt, args);
-  va_end (args);
-  display.println(buf);
-}
-
-void updateDisplay() {
-  display.clearDisplay();
-  display.setCursor(0,0);
-  formatDisplayStr("Profile: %s", displayData[PROFILE]);
-  display.setCursor(0,9);
-  formatDisplayStr("1: %s", displayData[LINE_1]);
-  display.setCursor(0,18);
-  formatDisplayStr("2: %s", displayData[LINE_2]);
-  display.setCursor(0,27);
-  formatDisplayStr("3: %s", displayData[LINE_3]);
-  display.setCursor(0,36);
-  formatDisplayStr("4: %s", displayData[LINE_4]);
-  display.setCursor(0,45);
-  formatDisplayStr("5: %s", displayData[LINE_5]);
-  display.setCursor(0,54);
-  formatDisplayStr("6: %s", displayData[LINE_6]);
-  display.display();
-}
-
-void updateDisplayArray() {
-  for (int keyString=0; keyString < KEYCOUNT; keyString++) {
-    displayData[keyString+1] = macroTitles[currentProfile][modKey+1][keyString];
-  }
-  updateDisplay();
-}
-
-/*
- * Shortcut section end
  *******************************************/
 
 /************************************
@@ -353,14 +169,17 @@ void ctrlCommand(int key) {
 
 // Launches an interpreter
 void guiPrompt() {
-  guiGetProgram(1000);
+  guiGetProgram(300);
   if ((currentProfile == WINDOWS_1) || (currentProfile == WINDOWS_2)) {
-    Keyboard.println("cmd");
+    Keyboard.print("cmd");
   }
   if(currentProfile == OSX_1) {
-    Keyboard.println("iterm"); // Press and hold win/clover key
+    Keyboard.print("iterm"); // Press and hold win/clover key
   }
   Keyboard.send_now();
+  delay(500);
+  Keyboard.press(KEY_ENTER);
+  Keyboard.release(KEY_ENTER);
   delay(800);
 }
 
@@ -390,6 +209,11 @@ void winMaximize(boolean withTmux) {
   }
 }
 
+void gotoGitRoot() {
+  Keyboard.println("cd $(git rev-parse --show-toplevel)");
+  Keyboard.send_now();
+}
+
 /*
  * Shortcut section end
  *******************************************/
@@ -406,6 +230,10 @@ void sshWorkEnv() {
   Keyboard.send_now();
   delay(1500);
   winMaximize(true);
+  setProfile_1(); // enter ubuntu profile
+  delay(1000);
+  Keyboard.println("tmux");
+  Keyboard.send_now();
 }
 
 void sshVDB() {
@@ -415,7 +243,28 @@ void sshVDB() {
   Keyboard.send_now();
 }
 
-// Docker section
+// VM/Docker section
+void dockerRun() {
+  gotoGitRoot();
+  delay(500);
+  Keyboard.println("make dockerrun");
+  Keyboard.send_now();
+}
+
+void dockerExec() {
+  gotoGitRoot();
+  delay(500);
+  Keyboard.println("make dockerexec");
+  Keyboard.send_now();
+}
+
+void dockerBuild() {
+  gotoGitRoot();
+  delay(500);
+  Keyboard.println("make dockerbuild");
+  Keyboard.send_now();
+}
+
 void dockerUbuntu() {
   Keyboard.println("docker run --rm -it ubuntu:latest /bin/bash");
   Keyboard.send_now();
@@ -426,15 +275,72 @@ void dockerCentos() {
   Keyboard.send_now();
 }
 
+
+void rainbowDocker() {
+  Keyboard.println("docker run --rm -it ubuntu:latest /bin/bash | lolcat");
+  Keyboard.send_now();
+}
+
+void vagrantUp() {
+  Keyboard.println("vagrant up");
+  Keyboard.send_now();
+}
+
+void vagrantSsh() {
+  Keyboard.println("vagrant ssh");
+  Keyboard.send_now();
+}
+
 // Programming functions
-void githubClone() {
-  ctrlCommand(KEY_L);
-  ctrlCommand(KEY_C);
+void quickStack() {
   guiPrompt();
   cdHome();
-  Keyboard.print("git clone ");
-  ctrlCommand(KEY_V);
-  Keyboard.println(".git");
+  Keyboard.println("cookiecutter git@gitlab.com:LISTERINE/quickstack.git");
+  Keyboard.send_now();
+  delay(500);
+  Keyboard.println("yes");
+  Keyboard.send_now();
+}
+
+void makeTest() {
+  Keyboard.println("make test");
+  Keyboard.send_now();
+}
+
+void makeUnitTest() {
+  Keyboard.println("make -C $(git rev-parse --show-toplevel) unittest");
+  Keyboard.send_now();
+}
+
+// Shortcuts
+void screenshot() {
+  if(currentProfile == OSX_1) {
+    Keyboard.set_modifier(MODIFIERKEY_SHIFT);
+    Keyboard.send_now();
+    Keyboard.set_modifier(MODIFIERKEY_SHIFT | MODIFIERKEY_GUI);
+    Keyboard.send_now();
+    Keyboard.print(KEY_4);
+    Keyboard.send_now();
+    
+  }
+  else {
+    Keyboard.set_key1(KEY_PRINTSCREEN);
+    Keyboard.send_now();
+  }
+  delay(100);
+  Keyboard.set_key1(0);  // Clear key1
+  Keyboard.set_modifier(0); // Clear modifiers
+  Keyboard.send_now(); // Push cleared key state.
+}
+
+void shrug() {
+  Keyboard.print("¯\_(ツ)_/¯");
+  Keyboard.send_now();
+}
+
+void jog() {
+  Keyboard.print("ᕕ( ᐛ )ᕗ");
+  Keyboard.send_now();
 }
 
 // Restart the teensy
@@ -444,6 +350,193 @@ void reboot() {
 
 /*
  * Macro section end
+ *******************************************/
+
+ /*******************************************
+ * Here we fill up our array of functions and set their corresponding string representations
+ * index [0][1] means key 0 is the modkey and then they hit key 1
+ * function key ----------->
+ * modifier key {{ self, f01,  f02 },
+ *            |  { f10,  self, f12 },
+ *            |  { f20,  f21,  self}}
+ *            V
+ *  The array is grouped into sections, based on the currently selected OS/profile
+ *  
+ *  functions at n,n (example [0][0]) require only one key press and take no modifier other than the current profile
+ *  
+ *  Make sure when you update a function you update the corresponding string to keep track of it
+ *  
+ */
+
+// String representations of functions for display
+// * keys are one button press keys
+char *macroTitles[PROFILECOUNT][KEYCOUNT+1][KEYCOUNT] = { // +1 for row types
+
+  // Windows functions
+  {
+    {"Remote",     "VM/Docker", "Programming", "Meta Keys", "General",    "Profile Switch"    }, // Titles
+    {"*Dev Env",   "SSH VDB",   "",            "",         "",            ""                  }, // Remote
+    {"",           "*",         "",            "",         "",            ""                  }, // VM/Docker
+    {"",           "",          "*",           "",         "",            ""                  }, // Programming
+    {"",           "",          "",            "*REBOOT",  "",            ""                  }, // Meta keys
+    {"shrug",      "jog",       "",            "",         "*screenshot", ""                  }, // Reserved
+    {"Windows 1", "Ubuntu",    "Centos",       "OSX",      "Reserved 1",  "*Windows 2"        }  // Profile Switch
+  },
+  // Ubuntu functions
+  {
+    {"Remote",         "VM/Docker","Programming", "Meta Keys", "General",    "Profile Switch"    }, // Titles
+    {"*",              "",         "",            "",          "",            ""                 }, // Remote
+    {"D.exec",         "*D.run",   "V.up",        "V.ssh",     "",            "D.build"          }, // VM/Docker
+    {"",               "",         "*",           "",          "",            ""                 }, // Programming
+    {"",               "",         "",            "*REBOOT",   "",            ""                 }, // Meta keys
+    {"shrug",          "jog",      "",            "",          "*screenshot", ""                 }, // Reserved
+    {"Windows 1",      "Ubuntu",   "Centos",      "OSX",       "Reserved 1",  "*Windows 2"       }  // Profile Switch
+  },
+  // Centos functions
+  {
+    {"Remote",     "VM/Docker", "Programming", "Meta Keys", "General",    "Profile Switch"    }, // Titles
+    {"*",           "",         "",            "",         "",            ""                  }, // Remote
+    {"D.exec",      "*D.run",   "V.up",        "V.ssh",     "",           "D.build"         }, // VM/Docker
+    {"",            "",         "*",           "",         "",            ""                  }, // Programming
+    {"",            "",         "",            "*REBOOT",  "",            ""                  }, // Meta keys
+    {"shrug",       "jog",      "",            "",         "*screenshot", ""                  }, // Reserved
+    {"Windows 1",   "Ubuntu",   "Centos",      "OSX",      "Reserved 1",  "*Windows 2"       }  // Profile Switch
+  },
+  // OSX functions
+  {
+    {"Remote",        "VM/Docker","Programming", "Meta Keys", "General",  "Profile Switch"    }, // Titles
+    {"*",             "",         "",            "",         "",            ""                  }, // Remote
+    {"D.exec",        "*D.run",   "V.up",        "V.ssh",     "",           "D.build"         }, // VM/Docker
+    {"goto git root", "unit test","*TERM",       "Quickstack","",           ""                  }, // Programming
+    {"",              "",         "",            "*REBOOT",  "",            ""                  }, // Meta keys
+    {"shrug",         "jog",      "",            "",         "*screenshot", ""                  }, // Reserved
+    {"Windows 1",     "Ubuntu",   "Centos",      "OSX",      "Reserved 1",  "*Windows 2"       }  // Profile Switch
+  },
+  // RESERVED_1 functions
+  {
+    {"Remote",     "VM/Docker", "Programming", "Meta Keys", "General",    "Profile Switch"    }, // Titles
+    {"*",          "",          "",            "",         "",            ""                  }, // Remote
+    {"",           "*",         "",            "",         "",            ""                  }, // VM/Docker
+    {"",           "",          "*",           "",         "",            ""                  }, // Programming
+    {"",           "",          "",            "*REBOOT",  "",            ""                  }, // Meta keys
+    {"shrug",      "jog",       "",            "",         "*screenshot", ""                  }, // Reserved
+    {"Windows 1",  "Ubuntu",    "Centos",      "OSX",      "Reserved 1",  "*Windows 2"       }  // Profile Switch
+  },
+  // WINDOWS_2 functions
+  {
+    {"Remote",     "VM/Docker", "Programming", "Meta Keys", "General",    "Profile Switch"    }, // Titles
+    {"*",          "",          "",            "",         "",            ""                  }, // Remote
+    {"",           "*",         "",            "",         "",            ""                  }, // VM/Docker
+    {"",           "",          "*",           "",         "",            ""                  }, // Programming
+    {"",           "",          "",            "*REBOOT",  "",            ""                  }, // Meta keys
+    {"shrug",      "jog",       "",            "",         "*screenshot", ""                  }, // Reserved
+    {"Windows 1",  "Ubuntu",    "Centos",      "OSX",      "Reserved 1",  "*Windows 2"       }  // Profile Switch
+  }
+};
+ 
+/*******************************************
+ * Display update convenience functions
+ */
+
+
+void formatDisplayStr(char *fmt, ...){
+  char buf[128]; // resulting string limited to 128 chars
+  va_list args;
+  va_start (args, fmt );
+  vsnprintf(buf, 128, fmt, args);
+  va_end (args);
+  display.println(buf);
+}
+
+void updateDisplay() {
+  display.clearDisplay();
+  display.setCursor(0,0);
+  formatDisplayStr("Profile: %s", displayData[PROFILE]);
+  display.setCursor(0,9);
+  formatDisplayStr("1: %s", displayData[LINE_1]);
+  display.setCursor(0,18);
+  formatDisplayStr("2: %s", displayData[LINE_2]);
+  display.setCursor(0,27);
+  formatDisplayStr("3: %s", displayData[LINE_3]);
+  display.setCursor(0,36);
+  formatDisplayStr("4: %s", displayData[LINE_4]);
+  display.setCursor(0,45);
+  formatDisplayStr("5: %s", displayData[LINE_5]);
+  display.setCursor(0,54);
+  formatDisplayStr("6: %s", displayData[LINE_6]);
+  display.display();
+}
+
+void updateDisplayArray() {
+  for (int keyString=0; keyString < KEYCOUNT; keyString++) {
+    displayData[keyString+1] = macroTitles[currentProfile][modKey+1][keyString];
+  }
+  updateDisplay();
+}
+
+/*
+ * Shortcut section end
+ *******************************************/
+ 
+void (*macros[PROFILECOUNT][KEYCOUNT][KEYCOUNT])() = {
+  // Windows functions
+  {
+    {sshWorkEnv,     sshVDB,         notImplemented, notImplemented, notImplemented, notImplemented}, // Remote
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // VM/Docker
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Programming
+    {notImplemented, notImplemented, notImplemented, reboot,         notImplemented, notImplemented}, // Meta keys
+    {shrug,          jog,            notImplemented, notImplemented, screenshot,     notImplemented}, // General
+    {setProfile_0,   setProfile_1,   setProfile_2,   setProfile_3,   setProfile_4,   setProfile_5  }  // Profile Switch
+  },
+  // Ubuntu functions
+  {
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Remote
+    {dockerExec,     dockerRun,      vagrantUp,      vagrantSsh,     notImplemented, dockerBuild   }, // VM/Docker
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Programming
+    {notImplemented, notImplemented, notImplemented, reboot,         notImplemented, notImplemented}, // Meta keys
+    {shrug,          jog,            notImplemented, notImplemented, screenshot,     notImplemented}, // General
+    {setProfile_0,   setProfile_1,   setProfile_2,   setProfile_3,   setProfile_4,   setProfile_5  }  // Profile Switch
+  },
+  // Centos functions
+  {
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Remote
+    {dockerExec,     dockerRun,      vagrantUp,      vagrantSsh,     notImplemented, dockerBuild   }, // VM/Docker
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Programming
+    {notImplemented, notImplemented, notImplemented, reboot,         notImplemented, notImplemented}, // Meta keys
+    {shrug,          jog,            notImplemented, notImplemented, screenshot,     notImplemented}, // General
+    {setProfile_0,   setProfile_1,   setProfile_2,   setProfile_3,   setProfile_4,   setProfile_5  }  // Profile Switch
+  },
+  // OSX functions
+  {
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Remote
+    {dockerExec,     dockerRun,      vagrantUp,      vagrantSsh,     notImplemented, dockerBuild   }, // VM/Docker
+    {gotoGitRoot,    makeUnitTest,   guiPrompt,      quickStack,     notImplemented, notImplemented}, // Programming
+    {notImplemented, notImplemented, notImplemented, reboot,         notImplemented, notImplemented}, // Meta keys
+    {shrug,          jog,            notImplemented, notImplemented, screenshot,     notImplemented}, // General
+    {setProfile_0,   setProfile_1,   setProfile_2,   setProfile_3,   setProfile_4,   setProfile_5  }  // Profile Switch
+  },
+  // RESERVED_1 functions
+  {
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Remote
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // VM/Docker
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Programming
+    {notImplemented, notImplemented, notImplemented, reboot,         notImplemented, notImplemented}, // Meta keys
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // General
+    {setProfile_0,   setProfile_1,   setProfile_2,   setProfile_3,   setProfile_4,   setProfile_5  }  // Profile Switch
+  },
+  // WINDOWS_2 functions
+  {
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Remote
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // VM/Docker
+    {notImplemented, notImplemented, notImplemented, notImplemented, notImplemented, notImplemented}, // Programming
+    {notImplemented, notImplemented, notImplemented, reboot,         notImplemented, notImplemented}, // Meta keys
+    {shrug,          jog,            notImplemented, notImplemented, screenshot,     notImplemented}, // General
+    {setProfile_0,   setProfile_1,   setProfile_2,   setProfile_3,   setProfile_4,   setProfile_5  }  // Profile Switch
+  }
+};
+
+/*
+ * Array of functions section end
  *******************************************/
 
 /*******************************************
@@ -524,9 +617,9 @@ void setup() {
   // convenient.  The scheme is called "active low", and it's
   // very commonly used in electronics... so much that the chip
   // has built-in pullup resistors!
-  pinMode(22, INPUT_PULLUP);
-  pinMode(21, INPUT_PULLUP);
-  pinMode(20, INPUT_PULLUP);
+  pinMode(0, INPUT_PULLUP);
+  pinMode(1, INPUT_PULLUP);
+  pinMode(6, INPUT_PULLUP);
   pinMode(3, INPUT_PULLUP);
   pinMode(4, INPUT_PULLUP);
   pinMode(5, INPUT_PULLUP);
@@ -556,7 +649,7 @@ void setup() {
    # End display init
    ##########################################*/
 
-   setProfile_0();
+   setProfile_3();
   
 }
 
